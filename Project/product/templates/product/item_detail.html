@@ -1,0 +1,153 @@
+{% extends 'product/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block head_title %}
+    {{item.title}} - BLOG
+{% endblock %}
+
+{% block main_area %}
+
+    <body>
+        <!-- Page Content-->
+        <div class="container px-4 px-lg-5">
+            {% if user.is_authenticated %}
+                {% if user.is_superuser or user.is_staff %}
+                    <a class="btn text-white float-right" style="background-color:#4B3621" href="/product/update_item/{{item.pk}}/" role="button">
+                        <i class="fas fa-pen"> UPDATE ITEM</i>
+                    </a>
+                {% endif %}
+            {% endif %}
+
+            <br>
+
+            <!-- Heading Row-->
+            <div class="row gx-4 gx-lg-5 align-items-center my-5">
+                {% if item.head_image %}
+                <div class="col-lg-6"><img class="img-fluid rounded mb-4 mb-lg-0" src="{{ item.head_image.url }}" alt="..." /></div>
+                {% endif %}
+                <div class="col-lg-6">
+                    {% if item.category %}
+                        <h3>
+                            <a href="{{item.category.get_absolute_url}}" class="badge badge-secondary" style="margin-bottom:20px;">{{ item.category }}</a>
+                            {% if item.company %}
+                            <a href="{{item.company.get_absolute_url}}" class="badge badge-secondary" style="margin-bottom:20px;">{{ item.company }}</a>
+                            {% endif %}
+                        </h3>
+                    {% endif %}
+
+                    <h1 class="font-weight-light">{{item.title}}</h1>
+                    <p>{{item.get_content_markdown | safe}}</p>
+                    <p>{{item.price}}원</p>
+
+                    {% if item.tags.exists %}
+                        {% for t in item.tags.iterator %}
+                        <span class="badge badge-pill badge-light">
+                        <a href="{{t.get_absolute_url}}" style="color:#4B3621">
+                            {{t}}
+                        </a>
+                        </span>
+                        {% endfor %}
+                    {% endif %}
+
+                    <hr>
+                    <p>{{item.nutrient}}</p>
+                </div>
+            </div>
+
+            <!-- Comments section-->
+                    <div id="comment-area" class="mb-5">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <!-- Comment form-->
+                                    {% if user.is_authenticated %}
+                                    <form class="mb-4" id="comment-form" method="post" action="{{item.get_absolute_url}}new_comment/">
+                                        {% csrf_token %}
+                                        <div class="form-group">
+                                            {{comment_form | crispy}}
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                    </form>
+                                    {% else %}
+                                        <a role="button" class="btn btn-dark btn-block btn-sm" href="#" data-toggle="modal" data-target="#loginModal">
+                                            Log in and Leave a comment
+                                        </a>
+                                    {% endif %}
+
+
+                                {% if item.comment_set.exists %}
+                                {% for comment in item.comment_set.iterator %}
+                                <!-- Single comment-->
+                                <div class="media d-flex" id="comment-{{comment.pk}}">
+                                    <img class="rounded-circle mr-3" src="{{comment.get_avatar_url}}" alt="{{comment.author}}" width="60px"/>
+                                    <div class="media-body ms-3">
+                                        {% if user.is_authenticated and comment.author == user %}
+                                            <div class="float-right">
+                                                <a role="button" class="btn btn-sm btn-info float-right"
+                                                   href="/product/update_comment/{{comment.pk}}/">
+                                                    Edit
+                                                </a>
+                                                <a role="button" class="btn btn-sm btn-danger float-right"
+                                                   data-toggle="modal" data-target="#deleteModal-{{comment.pk}}"
+                                                   href="#">
+                                                    Delete
+                                                </a>
+                                            </div>
+
+                                        <!-- Modal -->
+                                            <div
+                                              class="modal fade"
+                                              id="deleteModal-{{comment.pk}}"
+                                              tabindex="-1"
+                                              aria-labelledby="exampleModalLabel"
+                                              aria-hidden="true"
+                                            >
+                                              <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                  <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLabel">Are you sure?</h5>
+                                                    <button
+                                                      type="button"
+                                                      class="close"
+                                                      data-dismiss="modal"
+                                                      aria-label="Close"
+                                                    >
+                                                      <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                  </div>
+                                                  <div class="modal-body">
+                                                    <del>{{comment | linebreaks}}</del>
+                                                  </div>
+                                                  <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+
+                                                    <a role="button" class="btn btn-secondary" href="/product/delete_comment/{{comment.pk}}/">
+                                                      Delete
+                                                    </a>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+
+
+                                        {% endif %}
+                                        <div class="fw-bold">
+                                            {{comment.author.username}}
+                                            <small class="text-muted">{{comment.created_at}}</small>
+                                        </div>
+                                        <p>{{comment.content | linebreaks}}</p>
+                                        {% if comment.created_at != comment.modified_at %}
+                                            <p class="text-muted float-right">
+                                                <small>Updated : {{comment.modified_at}}</small>
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+        </div>
+    </body>
+
+{% endblock %}

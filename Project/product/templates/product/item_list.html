@@ -1,0 +1,116 @@
+{% extends 'product/base.html' %}
+{% load static %}
+{% block main_area %}
+
+<!-- Page Content-->
+
+<section class="pt-4">
+    <div class="container px-lg-5">
+
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.is_staff %}
+                <a class="btn text-white float-right" style="background-color:#4B3621" href="/product/create_item/" role="button">
+                    <i class="fa-solid fa-pen-to-square"> NEW ITEM</i>
+                </a>
+            {% endif %}
+        {% endif %}
+
+        <h2>ITEMS
+            {% if search_info %}
+                - <span class="badge">{{search_info}}</span>
+            {% endif %}
+
+            {% if category %}
+                - <span class="badge">{{category}}</span>
+            {% endif %}
+
+            {% if tag %}
+                - <span class="badge">{{tag}}</span>
+            {% endif %}
+        </h2>
+
+        <!-- Page Features-->
+        <div class="row gx-lg-5">
+            {% if item_list.exists %}
+            {% for i in item_list %}
+            <div class="col-lg-6 col-xxl-6 mb-6">
+                <div class="card bg-light border-0 h-100">
+                    <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                        {% if i.category %}
+                        <h5>
+                            <a href="{{i.category.get_absolute_url}}" class="badge badge-secondary" style="margin-bottom:50px;">{{ i.category }}</a>
+
+                            {% if i.company %}
+                            <a href="{{i.company.get_absolute_url}}" class="badge badge-secondary" style="margin-bottom:50px;">{{ i.company }}</a>
+                            {% endif %}
+
+                        </h5>
+                        {% endif %}
+
+
+
+                        {% if i.head_image %}
+                        <div class="bg-gradient mb-4 mt-n4"><img class="card-img-top" src="{{ i.head_image.url}}"></div>
+                        {% endif %}
+
+                        {% if i.tags.exists %}
+                        {% for t in i.tags.iterator %}
+                        <span class="badge badge-pill badge-light">
+                        <a href="{{t.get_absolute_url}}" style="color:#4B3621">
+                            {{t}}
+                        </a>
+                        </span>
+                        {% endfor %}
+                        {% endif %}
+                        <br>
+                        <br>
+
+                        <h4 class="fs-4 fw-bold">{{ i.title }}</h4>
+                        <p class="text-muted">{{i.get_content_markdown | truncatewords_html:20 | safe}}</p>
+                        <p class="mb-0">{{ i.price }}원</p>
+                        <hr>
+                        <a class="btn text-white" style="background-color:#4B3621" href="{{i.get_absolute_url}}">More Info →</a>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+
+
+        <!-- Pagination-->
+          {% if is_paginated %}
+          <nav aria-label="Pagination">
+            <hr class="my-0" />
+            <ul class="pagination justify-content-center my-4">
+                {% if page_obj.has_previous %}
+                  <li class="page-item">
+                    <a class="page-link" style="color:#4B3621;" href="?page={{page_obj.previous_page_number}}" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-arrow-left"></i></a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled">
+                        <a class="page-link" style="color:#4B3621;" href="#" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-arrow-left"></i></a>
+                      </li>
+                {% endif %}
+
+                {% if page_obj.has_next %}
+                  <li class="page-item">
+                    <a class="page-link" style="color:#4B3621;" href="?page={{page_obj.next_page_number}}"><i class="fa-solid fa-arrow-right"></i></a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled">
+                    <a class="page-link" style="color:#4B3621;" href="#!"><i class="fa-solid fa-arrow-right"></i></a>
+                  </li>
+                {% endif %}
+            </ul>
+          </nav>
+          {% endif %}
+
+
+    </div>
+</section>
+
+
+
+{% endblock %}
